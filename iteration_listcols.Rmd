@@ -94,6 +94,17 @@ use the function
 mean_and_sd(list_norms[["a"]])
 ```
 
+## Use a for loop
+create output list, and run for loop
+```{r}
+output = vector("list",length = 4)
+for (i in 1:4) {
+  output[[i]] = mean_and_sd(list_norms[[i]])
+}
+
+output
+```
+
 
 
 
