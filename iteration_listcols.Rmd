@@ -105,7 +105,139 @@ for (i in 1:4) {
 output
 ```
 
+## Do the same thing
+but with `map` instead
 
+```{r}
+#这个的结果会输出四个表
+output = map(list_norms, mean_and_sd)
+output
+```
+
+```{r}
+#也素把结果写在一个表里
+output = map_dbl(list_norms, IQR)
+output
+```
+
+```{r}
+##把结果写在一个表里
+output = map_dfr(list_norms, mean_and_sd)
+output
+```
+
+## List columns
+```{r}
+listcol_df = 
+  tibble(
+    name = c("a", "b", "c", "d"),
+    samp = list_norms
+  )
+
+##可以对listcol_df进行操作，just like一个df
+listcol_df |>
+  filter(name %in% c("a", "b"))
+
+listcol_df |>
+  select(-samp)
+```
+
+```{r}
+#调取samp里的a
+listcol_df[["samp"]][["a"]]
+mean_and_sd(listcol_df[["samp"]][["b"]])
+```
+
+```{r}
+map(listcol_df[["samp"]], mean_and_sd)
+```
+
+ADD A LIST COLUMN
+```{r}
+listcol_df |>
+  mutate(output = map(samp, mean_and_sd),
+         iqr = map_dbl(samp, IQR)) |>
+  select(-samp) |>
+  unnest(output)
+## unnest:将保存在tibble中的子数据框合并为一个大数据框
+```
+
+## NSDUH
+use the function we worte last time
+```{r}
+nsduh_table_format = function(html, table_number) {
+  out_table = 
+    html |> 
+    html_table() |> 
+    nth(table_number) |>
+    slice(-1) |> 
+    select(-contains("P value"))
+  
+  return(out_table)
+}
+```
+
+```{r}
+nsduh_url = "http://samhda.s3-us-gov-west-1.amazonaws.com/s3fs-public/field-uploads/2k15StateFiles/NSDUHsaeShortTermCHG2015.htm"
+
+nsduh_html = read_html(nsduh_url)
+```
+
+```{r}
+nsduh_table_format(html = nsduh_html, table_number = 1)
+nsduh_table_format(html = nsduh_html, table_number = 4)
+nsduh_table_format(html = nsduh_html, table_number = 5)
+```
+
+if use for loop:
+```{r}
+nsduh_df = 
+  tibble(
+    drug = c("marj", "cocaine", "heroin"),
+    table_n = c(1, 4, 5)
+  ) |>
+  mutate(table = map(table_n, nsduh_table_format, html = nsduh_html)) |>
+#或者写成：map(table_n, \(x) nsduh_table_format(html = nsduh_html, table_number = x))
+  unnest(cols = "table")
+
+nsduh_df |>
+  filter(State == "New York")
+```
+
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USW00022534", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2021-01-01",
+    date_max = "2022-12-31") |>
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USW00022534 = "Molokai_HI",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) |>
+  select(name, id, everything())
+```
+
+Create a list column
+```{r}
+weather_nest = 
+  nest(weather_df, data = date:tmin)
+weather_nest
+```
+
+```{r}
+weather_nest[["data"]][[1]]
+```
+
+```{r}
+weather_nest |>
+  mutate(model_fit = map(data, \(x) lm(tmax~tmin, data = x))) |>
+  pull(model_fit)
+```
 
 
 
