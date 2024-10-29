@@ -81,5 +81,80 @@ z_score(x = 3)
 z_score(x=c("my","name","is","jeff"))
 ```
 
+## A new function
+
+```{r}
+mean_and_sd = function(x){
+  
+  mean_x = mean(x)
+  sd_x = sd(x)
+  
+  out_df = 
+    tibble(
+      mean = mean_x,
+      sd = sd_x
+    )
+  
+  return(out_df)
+  
+}
+```
+
+```{r}
+mean_and_sd(x_vec)
+```
+
+## Check stuff using a simulation
+```{r}
+sim_df = 
+  tibble(
+    x = rnorm(30, 10, 5)
+  )
+
+sim_df |>
+  summarize(
+    mean = mean(x), 
+    sd = sd(x)
+  )
+```
+
+### create a simulation fuction to check mean and sd
+```{r}
+sim_mean_sd = function(sample_size, true_mean = 10, true_sd = 5){
+  sim_df = 
+    tibble(
+      x = rnorm(sample_size, true_mean, true_sd))
+  
+  out_df = sim_df |>
+    summarize(
+      mean = mean(x), 
+      sd = sd(x))
+  
+  return(out_df)
+}
+```
+
+```{r}
+sim_mean_sd(sample_size = 30, true_mean = 4, true_sd = 12)
+```
+
+```{r}
+sim_mean_sd(sample_size = 30, true_mean = 4, true_sd = 12)
+```
+
+```{r}
+sim_mean_sd(30, 16, 2)
+```
+
+```{r}
+sim_mean_sd(330)
+```
+
+
+
+
+
+
+
 
 
