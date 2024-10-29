@@ -27,6 +27,7 @@ Load the key packages.
 ```{r}
 library(tidyverse)
 library(rvest)
+library(readxl)
 ```
 
 ## writing my first function
@@ -149,6 +150,107 @@ sim_mean_sd(30, 16, 2)
 ```{r}
 sim_mean_sd(330)
 ```
+
+## revisit LoTR dataset
+```{r}
+fellowship_df = 
+  read_excel("./data/LotR_Words.xlsx", range = "B3:D6") |>
+  mutate(movie = "fellowship_ring")
+
+two_towers = readxl::read_excel("./data/LotR_Words.xlsx", range = "F3:H6") |>
+  mutate(movie = "two_towers")
+
+return_king = readxl::read_excel("./data/LotR_Words.xlsx", range = "J3:L6") |>
+  mutate(movie = "return_king")
+
+```
+
+Use a function to solve the problem
+```{r}
+lotr_import = function(cell_range, movie_title){
+  movie_df = 
+    read_excel("./data/LotR_Words.xlsx", range = cell_range) |>
+    mutate(movie = movie_title) |>
+    janitor::clean_names() |>
+    pivot_longer(
+      female:male,
+      names_to = "sex",
+      values_to = "words"
+    ) |>
+    select(movie, everything())
+  
+  return(movie_df)
+
+}
+```
+
+```{r}
+lotr_import(cell_range = "B3:D6", movie_title = "fellowship_ring")
+```
+
+```{r}
+lotr_df = 
+  bind_rows(
+    lotr_import(cell_range = "B3:D6", movie_title = "fellowship_ring"),
+    lotr_import(cell_range = "F3:H6", movie_title = "two_towers"),
+    lotr_import(cell_range = "J3:L6", movie_title = "return_king")
+  )
+```
+
+## NUSDH
+```{r}
+nsduh_url = "http://samhda.s3-us-gov-west-1.amazonaws.com/s3fs-public/field-uploads/2k15StateFiles/NSDUHsaeShortTermCHG2015.htm"
+
+nsduh_html = read_html(nsduh_url)
+
+marj_table = 
+  nsduh_html |> 
+  html_table() |> 
+  nth(1) |>
+  slice(-1) |> 
+  mutate(drug = "marj")
+
+cocaine_table = 
+  nsduh_html |> 
+  html_table() |> 
+  nth(4) |>
+  slice(-1) |> 
+  mutate(drug = "cocaine")
+
+heroin_table = 
+  nsduh_html |> 
+  html_table() |> 
+  nth(5) |>
+  slice(-1) |> 
+  mutate(drug = "heroin")
+```
+
+```{r}
+nsduh_table_format = function(html, table_number, table_name) {
+  out_table = 
+    html |> 
+    html_table() |> 
+    nth(table_number) |>
+    slice(-1) |> 
+    mutate(drug = table_name)
+  
+  return(out_table)
+}
+```
+
+```{r}
+bind_rows(
+nsduh_table_format(nsduh_html, 1, "marj"),
+nsduh_table_format(nsduh_html, 4, "cocaine"),
+nsduh_table_format(nsduh_html, 5, "heroin"))
+```
+
+
+
+
+
+
+
 
 
 

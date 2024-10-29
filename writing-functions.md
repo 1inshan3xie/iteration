@@ -48,6 +48,10 @@ library(rvest)
     ## 
     ##     guess_encoding
 
+``` r
+library(readxl)
+```
+
 ## writing my first function
 
 as an example, here’s a z-score computation
@@ -58,11 +62,11 @@ x_vec = rnorm(25, mean = 10, sd = 3.5)
 (x_vec - mean(x_vec)) / sd(x_vec)
 ```
 
-    ##  [1] -0.558096555 -1.156145168  0.805766393 -0.004049964  0.042332198
-    ##  [6]  0.430543670  0.433803738 -0.343151345  0.582117843 -0.334013413
-    ## [11] -0.515282965  2.519296823  1.041206697  1.850255261  0.476720747
-    ## [16]  0.222115993 -0.210060067 -0.593105891 -0.828920062  0.283796393
-    ## [21] -0.957687653 -0.520173132 -2.646871834 -0.060677009  0.040279303
+    ##  [1]  0.04542057 -0.48487900 -0.03837685  2.14820838 -1.31407828 -0.23432516
+    ##  [7]  1.16459437 -1.66064833  0.82943464  0.37587835 -1.24121460  0.61816121
+    ## [13] -0.98940536 -0.52856537 -1.78613754  0.49296229 -0.77590860 -0.01118984
+    ## [19]  1.26648295 -0.02103901 -0.26174557  1.15097415  0.17565601  1.43251227
+    ## [25] -0.35277167
 
 Now i’ll write a function to do this
 
@@ -75,11 +79,11 @@ z_score = function(x){
 z_score(x = x_vec)
 ```
 
-    ##  [1] -0.558096555 -1.156145168  0.805766393 -0.004049964  0.042332198
-    ##  [6]  0.430543670  0.433803738 -0.343151345  0.582117843 -0.334013413
-    ## [11] -0.515282965  2.519296823  1.041206697  1.850255261  0.476720747
-    ## [16]  0.222115993 -0.210060067 -0.593105891 -0.828920062  0.283796393
-    ## [21] -0.957687653 -0.520173132 -2.646871834 -0.060677009  0.040279303
+    ##  [1]  0.04542057 -0.48487900 -0.03837685  2.14820838 -1.31407828 -0.23432516
+    ##  [7]  1.16459437 -1.66064833  0.82943464  0.37587835 -1.24121460  0.61816121
+    ## [13] -0.98940536 -0.52856537 -1.78613754  0.49296229 -0.77590860 -0.01118984
+    ## [19]  1.26648295 -0.02103901 -0.26174557  1.15097415  0.17565601  1.43251227
+    ## [25] -0.35277167
 
 does this always work?
 
@@ -153,7 +157,7 @@ mean_and_sd(x_vec)
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  10.7  3.62
+    ## 1  10.8  4.23
 
 ## Check stuff using a simulation
 
@@ -173,7 +177,7 @@ sim_df |>
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  11.9  4.56
+    ## 1  8.46  5.30
 
 ### create a simulation fuction to check mean and sd
 
@@ -199,7 +203,7 @@ sim_mean_sd(sample_size = 30, true_mean = 4, true_sd = 12)
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  6.39  12.6
+    ## 1  3.63  9.79
 
 ``` r
 sim_mean_sd(sample_size = 30, true_mean = 4, true_sd = 12)
@@ -208,7 +212,7 @@ sim_mean_sd(sample_size = 30, true_mean = 4, true_sd = 12)
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  6.22  12.8
+    ## 1  5.67  13.3
 
 ``` r
 sim_mean_sd(30, 16, 2)
@@ -217,7 +221,7 @@ sim_mean_sd(30, 16, 2)
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  15.8  1.91
+    ## 1  16.0  2.43
 
 ``` r
 sim_mean_sd(330)
@@ -226,4 +230,130 @@ sim_mean_sd(330)
     ## # A tibble: 1 × 2
     ##    mean    sd
     ##   <dbl> <dbl>
-    ## 1  10.6  5.10
+    ## 1  10.2  5.00
+
+## revisit LoTR dataset
+
+``` r
+fellowship_df = 
+  read_excel("./data/LotR_Words.xlsx", range = "B3:D6") |>
+  mutate(movie = "fellowship_ring")
+
+two_towers = readxl::read_excel("./data/LotR_Words.xlsx", range = "F3:H6") |>
+  mutate(movie = "two_towers")
+
+return_king = readxl::read_excel("./data/LotR_Words.xlsx", range = "J3:L6") |>
+  mutate(movie = "return_king")
+```
+
+Use a function to solve the problem
+
+``` r
+lotr_import = function(cell_range, movie_title){
+  movie_df = 
+    read_excel("./data/LotR_Words.xlsx", range = cell_range) |>
+    mutate(movie = movie_title) |>
+    janitor::clean_names() |>
+    pivot_longer(
+      female:male,
+      names_to = "sex",
+      values_to = "words"
+    ) |>
+    select(movie, everything())
+  
+  return(movie_df)
+
+}
+```
+
+``` r
+lotr_import(cell_range = "B3:D6", movie_title = "fellowship_ring")
+```
+
+    ## # A tibble: 6 × 4
+    ##   movie           race   sex    words
+    ##   <chr>           <chr>  <chr>  <dbl>
+    ## 1 fellowship_ring Elf    female  1229
+    ## 2 fellowship_ring Elf    male     971
+    ## 3 fellowship_ring Hobbit female    14
+    ## 4 fellowship_ring Hobbit male    3644
+    ## 5 fellowship_ring Man    female     0
+    ## 6 fellowship_ring Man    male    1995
+
+``` r
+lotr_df = 
+  bind_rows(
+    lotr_import(cell_range = "B3:D6", movie_title = "fellowship_ring"),
+    lotr_import(cell_range = "F3:H6", movie_title = "two_towers"),
+    lotr_import(cell_range = "J3:L6", movie_title = "return_king")
+  )
+```
+
+## NUSDH
+
+``` r
+nsduh_url = "http://samhda.s3-us-gov-west-1.amazonaws.com/s3fs-public/field-uploads/2k15StateFiles/NSDUHsaeShortTermCHG2015.htm"
+
+nsduh_html = read_html(nsduh_url)
+
+marj_table = 
+  nsduh_html |> 
+  html_table() |> 
+  nth(1) |>
+  slice(-1) |> 
+  mutate(drug = "marj")
+
+cocaine_table = 
+  nsduh_html |> 
+  html_table() |> 
+  nth(4) |>
+  slice(-1) |> 
+  mutate(drug = "cocaine")
+
+heroin_table = 
+  nsduh_html |> 
+  html_table() |> 
+  nth(5) |>
+  slice(-1) |> 
+  mutate(drug = "heroin")
+```
+
+``` r
+nsduh_table_format = function(html, table_number, table_name) {
+  out_table = 
+    html |> 
+    html_table() |> 
+    nth(table_number) |>
+    slice(-1) |> 
+    mutate(drug = table_name)
+  
+  return(out_table)
+}
+```
+
+``` r
+bind_rows(
+nsduh_table_format(nsduh_html, 1, "marj"),
+nsduh_table_format(nsduh_html, 4, "cocaine"),
+nsduh_table_format(nsduh_html, 5, "heroin"))
+```
+
+    ## # A tibble: 168 × 17
+    ##    State     `12+(2013-2014)` `12+(2014-2015)` `12+(P Value)` `12-17(2013-2014)`
+    ##    <chr>     <chr>            <chr>            <chr>          <chr>             
+    ##  1 Total U.… 12.90a           13.36            0.002          13.28b            
+    ##  2 Northeast 13.88a           14.66            0.005          13.98             
+    ##  3 Midwest   12.40b           12.76            0.082          12.45             
+    ##  4 South     11.24a           11.64            0.029          12.02             
+    ##  5 West      15.27            15.62            0.262          15.53a            
+    ##  6 Alabama   9.98             9.60             0.426          9.90              
+    ##  7 Alaska    19.60a           21.92            0.010          17.30             
+    ##  8 Arizona   13.69            13.12            0.364          15.12             
+    ##  9 Arkansas  11.37            11.59            0.678          12.79             
+    ## 10 Californ… 14.49            15.25            0.103          15.03             
+    ## # ℹ 158 more rows
+    ## # ℹ 12 more variables: `12-17(2014-2015)` <chr>, `12-17(P Value)` <chr>,
+    ## #   `18-25(2013-2014)` <chr>, `18-25(2014-2015)` <chr>, `18-25(P Value)` <chr>,
+    ## #   `26+(2013-2014)` <chr>, `26+(2014-2015)` <chr>, `26+(P Value)` <chr>,
+    ## #   `18+(2013-2014)` <chr>, `18+(2014-2015)` <chr>, `18+(P Value)` <chr>,
+    ## #   drug <chr>
