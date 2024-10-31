@@ -232,7 +232,18 @@ weather_nest
 ```{r}
 weather_nest[["data"]][[1]]
 ```
+use function
+```{r}
+weather_lm = function(df) {
+  lm(tmax ~ tmin, data = df)
+}
+```
 
+```{r}
+weather_lm(weather_nest[["data"]][[1]])
+```
+
+use map
 ```{r}
 weather_nest |>
   mutate(model_fit = map(data, \(x) lm(tmax~tmin, data = x))) |>
