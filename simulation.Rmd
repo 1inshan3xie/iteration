@@ -1,0 +1,64 @@
+---
+title: "Simple document"
+author: Linshan Xie
+date: 2024-10-24
+output: github_document
+---
+
+```{r include = FALSE, message = FALSE, warning = FALSE}
+library(ggplot2)
+library(tidyverse)
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal()+theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis")
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+```{r}
+sim_df = 
+  tibble(
+    x = rnorm(30, 10, 5)
+  )
+
+sim_df |>
+  summarize(
+    mean = mean(x), 
+    sd = sd(x)
+  )
+```
+## writing an simulation function
+```{r}
+sim_mean_sd = function(sample_size, true_mean = 10, true_sd = 5){
+  sim_df = 
+    tibble(
+      x = rnorm(sample_size, true_mean, true_sd))
+  
+  out_df = sim_df |>
+    summarize(
+      mean = mean(x), 
+      sd = sd(x))
+  
+  return(out_df)
+}
+```
+
+
+
+
+
+
+
+
+
+
+
